@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active: dev, debug
+  application:
+    name: TypeaheadBack
+server:
+  port: 9199
+    
+---
+
+spring:
+  profiles: debug,dev
+server:
+  port: ${PORT}
+  
+---
+
+spring:
+  profiles: cal
+server:
+  port: ${PORT}
+
+---
+
+spring:
+  profiles: prod
+server:
+  port: ${PORT}
