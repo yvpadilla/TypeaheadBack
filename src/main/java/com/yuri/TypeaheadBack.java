@@ -23,9 +23,7 @@ import java.util.Iterator;
 @SpringBootApplication
 public class TypeaheadBack {
 	
-	//@Value("${server.port}")
-	//private String PORT;
-
+	// Environment Variable containing location of names.json
 	@Value("${JSON_FILE}")
 	public String JSON_FILE;
 	
@@ -35,18 +33,24 @@ public class TypeaheadBack {
 
 	@SuppressWarnings("null")
 	@Bean
+	// INITIAL CHARGE
+	// names.json is inserted as rows into Names in-memory table
 	CommandLineRunner runnerName(NameService nameService){
 	    return args -> {
         	System.out.println(JSON_FILE);
         	try (FileReader reader = new FileReader(JSON_FILE))
 	        {
+        		// Names.json is parsed and a env var is used to assure location of this file 
+        		// into docker container
 	        	JSONParser jsonParser = new JSONParser();
 	        	JSONObject obj = (JSONObject)jsonParser.parse(reader);
 	        	long count = 1;
 		        for(Iterator<?> iterator = obj.keySet().iterator(); iterator.hasNext();) {
+		        	  // Every element constitutes a name whose elements are name and times
 		        	  String key = (String) iterator.next();
 		        	  long value = (long) obj.get(key);
 		        	  Name name = new Name(count++, key, value);
+		        	  // A service is used to insert every row into Name in-memory table
 		        	  nameService.addName(name);		        
 		        }						    
 		        System.out.println("Names Saved!");
