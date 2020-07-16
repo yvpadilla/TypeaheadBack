@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,26 +20,25 @@ import com.yuri.domain.Name;
 import com.yuri.service.NameService;
 
 @RestController
-@RequestMapping("/typeahead")
+@RequestMapping(path = "/typeahead")
 public class NameController {
 	
 	@Autowired
 	private NameService service;
 
-	// Environment variable containing maximum quantity of elements to show 
 	@Value("${SUGGESTION_NUMBER}")
 	public String SUGGESTION_NUMBER;
 	
-	// FUNCTIONALITY: Give back n (defined by SUGGESTION_NUMBER) a list of elements 
-	//				  most near to prefix received as parameter
 	@SuppressWarnings("null")
-	@GetMapping("/{prefix}")
-    public List<Name> findAllNameByTimesDescAndNameAsc(@PathVariable String prefix) {
+	@GetMapping( value = "/{prefix}",
+    	consumes = "application/json"
+    )	
+	public ResponseEntity<List<Name>> findAllNameByTimesDescAndNameAsc(@PathVariable String prefix) {
         String upperPrefix = prefix.toUpperCase();
         
     	List<Name> allName = new ArrayList<Name>();    	
-    	// Env Var SUGGESTION_NUMBER limits elements for showing
-    	int rowsQuantity = Integer.parseInt(SUGGESTION_NUMBER);    	
+    	int rowsQuantity = Integer.parseInt(SUGGESTION_NUMBER);
+    	System.out.println("SUGGESTION_NUMBER : "+rowsQuantity);    	
     	
     	// EXACT SEARCH
     	// If name exists, it is put on first place
@@ -63,21 +66,22 @@ public class NameController {
        			allName.add(s);
         	});    		
     	}
-    	
-        return allName;
+
+		final HttpHeaders httpHeaders= new HttpHeaders();
+	    httpHeaders.setContentType(MediaType.APPLICATION_JSON);			
+	    return new ResponseEntity<List<Name>>(allName, httpHeaders, HttpStatus.OK);    	
     }	
 	
-	// FUNCTIONALITY: Increment name's weigth (times) which is used as priority
-	//				  when a list of elements is elaborated
-	@PostMapping("")
-    public Name updateName(@RequestBody Name name) {
+	
+	@PostMapping( value = ""
+	)	
+    public ResponseEntity<Name> updateName(@RequestBody Name name) {
 		String prefix = name.getName();
-		// SEARCH
-		// In case name is found, times is incremented by 1
 		Name nameFound = service.findNameByName(prefix);
 		if (nameFound!=null) {
-			return service.updateNameTimes(nameFound);
-		// otherwise, error 400 is shown
+			final HttpHeaders httpHeaders= new HttpHeaders();
+		    httpHeaders.setContentType(MediaType.APPLICATION_JSON);		
+		    return new ResponseEntity<Name>(nameFound, httpHeaders, HttpStatus.OK);
 		} else {
 			throw new NameNotFoundException("Name : "+prefix);		
 		}
