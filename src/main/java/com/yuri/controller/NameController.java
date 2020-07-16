@@ -79,6 +79,7 @@ public class NameController {
 		String prefix = name.getName();
 		Name nameFound = service.findNameByName(prefix);
 		if (nameFound!=null) {
+			nameFound = service.updateNameTimes(nameFound);
 			final HttpHeaders httpHeaders= new HttpHeaders();
 		    httpHeaders.setContentType(MediaType.APPLICATION_JSON);		
 		    return new ResponseEntity<Name>(nameFound, httpHeaders, HttpStatus.OK);
